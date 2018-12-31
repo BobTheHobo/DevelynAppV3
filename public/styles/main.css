@@ -1,0 +1,37 @@
+.button {
+	background-color: #4CAF50;
+	border: none;
+	color: white;
+	padding: 15px 32px;
+	text-align: center;
+	margin:4px 2px;
+	width:180px;
+}
+.thing {
+	font-family: Arial;
+}
+.button:active {
+	background: #009900;
+	-webkit-box-shadow: inset 0px 0px 5px #c1c1c1;
+	-moz-box-shadow: inset 0px 0px 5px #c1c1c1;
+	box-shadow: inset 0px 0px 5px #c1c1c1;
+	outline: none;
+}
+.redbutton{
+	background-color: #f44242;
+	border: none;
+	color: white;
+	padding: 15px 32px;
+	text-align: center;
+	margin:4px 2px;
+	width:180px;
+}
+.blackbutton{
+	background-color: #000000;
+	border: none;
+	color: white;
+	padding: 15px 32px;
+	text-align: center;
+	margin:4px 2px;
+	width:180px;
+}
