@@ -1,34 +1,36 @@
-
+<!DOCTYPE html>
 <html lang="en">
 <head>
+  <meta charset="utf-8">
+  <meta name="description" content="A web app for D'Evelyn Jr/Sr High School.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seventh Hour Sign Up</title>
+
+  <!--Web App Manifest -->
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Add to homescreen for Chrome on Android -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="application-name" content="7th Hour App">
+  <meta name="theme-color" content="#0B610B">
+
+  <!-- Add to homescreen for Safari on iOS -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="7th Hour App">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#0B610B">
+
+  <!-- Tile icon for Win8 (prob won't be used) -->
+  <meta name="msapplication-TileColor" content="#3372DF">
+  <meta name="msapplication-navbutton-color" content="#303F9F">
+
 	<script src="https://apis.google.com/js/platform.js" async defer></script>
+
+  <!-- App Styling -->
+  <link rel="stylesheet" href="styles/main.css">
 </head>
 
 <body>
-	<!-- Import Firebase SDK libraries-->
-	<script src="/__/firebase/5.7.0/firebase-app.js"></script>
-  <script src="/__/firebase/5.7.0/firebase-auth.js"></script>
-  <script src="/__/firebase/5.7.0/firebase-database.js"></script>
-  <script src="/__/firebase/init.js"></script>
-
-	<!-- Firebase Initilization Scripts. 
-  This is redundant b/c the init.js takes care of it
-	<script type="text/javascript">
-		var config = {
-			apiKey: "AIzaSyDrIuzlpRX20EPQh-MC6u6181qBRDemwQU",
-			authDomain: "develynapptest.firebaseapp.com",
-			databaseURL: "https://develynapptest.firebaseio.com",
-			projectId: "develynapptest",
-			storageBucket: "develynapptest.appspot.com",
-			messagingSenderId: "70931709922"
-		};
-		firebase.initializeApp(config);
-	</script>
-  -->
-
-	<!-- Title Text-->
-	<title>Seventh Hour Sign Up</title>
-
 	<!-- Page Formatting -->
 	<div id="loginStuff">
     <button hidden id="loginButton" class="button" onclick="login()">Log in with Google</button>
@@ -38,6 +40,13 @@
   <div id="divWrapper">
   </div>
 
+  <!-- Import Firebase SDK libraries-->
+  <script src="/__/firebase/5.7.0/firebase-app.js"></script>
+  <script src="/__/firebase/5.7.0/firebase-auth.js"></script>
+  <script src="/__/firebase/5.7.0/firebase-database.js"></script>
+  <script src="/__/firebase/init.js"></script>
+
   <!-- load script-->
   <script src="scripts/main.js"></script>
+</body>
 </html>
