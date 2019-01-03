@@ -14,6 +14,8 @@ provider = { //provider variable is created in login() function
 //Button DOM elements
 var loginB = document.getElementById('loginButton');
 var logoutB = document.getElementById('logoutButton');
+//DOM elements
+var wrapper = document.getElementById("divWrapper");
 
 //shows login button and hides logout button
 function showLogin(){
@@ -49,11 +51,7 @@ function initFirebaseAuth(){
 
 //Updates whenever a user logs in/out
 function update(user){
-	//DOM elements
-	var wrapper = document.getElementById("divWrapper");
-
 	if(user){ //user is logged in!
-		divWrapper.removeAttribute('hidden');
 		loggedin = true;
 		console.log("Logged in: "+loggedin);
 		hideLogin();
@@ -242,7 +240,10 @@ function update(user){
 		loggedin = false;
 		console.log("Logged in: "+loggedin);
 		showLogin();
-		divWrapper.setAttribute('hidden','true');
+		while (wrapper.firstChild) {
+    		wrapper.removeChild(wrapper.firstChild);
+		}
+		console.log('did this even finsih');
 	}
 }
 
