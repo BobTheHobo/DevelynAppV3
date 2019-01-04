@@ -1,20 +1,14 @@
-//Test variables for testing a teacher?
 var loggedin = false;
-var role = 'student';
-var tname = 'Mr. Murphy'; //var teacherName = 'Mr. Murphy';
+var role = 'teacher';
+var tname = 'Mr. Murphy';
 var id = '2027266'; //Student ID
 var dbRef = firebase.database().ref().child('students'); //Student database reference
 var dbtref = firebase.database().ref().child('teachers'); //Teacher database reference 
 var attendanceRef = firebase.database().ref().child('attendance'); //Attendence database reference
-provider = { //provider variable is created in login() function
-	name: '',
-	profilePicture: '',
-	email: '', 
-}
-//Button DOM elements
+
+//DOM elements
 var loginB = document.getElementById('loginButton');
 var logoutB = document.getElementById('logoutButton');
-//DOM elements
 var wrapper = document.getElementById("divWrapper");
 
 //shows login button and hides logout button
@@ -29,22 +23,21 @@ function hideLogin(){
 	logoutB.removeAttribute('hidden');
 }
 
+// Sign in Firebase using popup auth and Google as the identity provider.
 function login() {
-	// Sign in Firebase using popup auth and Google as the identity provider.
 	var provider = new firebase.auth.GoogleAuthProvider();
 	firebase.auth().signInWithPopup(provider);
 }
 
+// Sign out of Firebase.
 function logout() {
-  // Sign out of Firebase.
   firebase.auth().signOut();
 }
 
 //user should be checked out at start
 logout();
 
-//initialize firebase
-//this function is called all the way at the bottom
+//initialize firebase, calls update whenever user logs in/out
 function initFirebaseAuth(){
 	firebase.auth().onAuthStateChanged(update);
 }
@@ -80,7 +73,7 @@ function update(user){
 						temp.setAttribute('content', 'test content');
 						temp.setAttribute('class', 'button');
 						temp.setAttribute('onclick', 'signup('+JSON.stringify(allvals[i])+')');
-						temp.innerHTML = allvals[z] + ':\n ' + plan;
+						temp.textContent = allvals[z] + ':\n ' + plan;
 						var tempd = document.createElement('div');
 						wrapper.appendChild(temp);
 						wrapper.appendChild(tempd);
@@ -97,7 +90,6 @@ function update(user){
 				header.setAttribute('class', 'thing');
 				header.innerHTML = 'Require students';
 				wrapper.appendChild(header);
-
 				dbtref.once('value', snapshot=> {
 					var allteachers = snapshot.val();
 					var tidx = -1;
@@ -109,26 +101,26 @@ function update(user){
 					};
 					var max = document.createElement('p');
 					max.setAttribute('class', 'thing');
-					max.innerHTML = 'Current max: ' + allteachers[tidx][1];
+					max.textContent = 'Current max: ' + allteachers[tidx][1];
 					wrapper.appendChild(max);
 					var changemax = document.createElement('button');
 					changemax.setAttribute('class', 'blackbutton');
 					changemax.setAttribute('content', 'changemax');
 					changemax.setAttribute('onclick', 'changemax('+allteachers[tidx][1]+','+tidx+')');
-					changemax.innerHTML = 'Change max';
+					changemax.textContent = 'Change max';
 					wrapper.appendChild(changemax);
 					var plan = document.createElement('p');
 					plan.setAttribute('class', 'thing');
-					plan.innerHTML = 'Current plan: ' + allteachers[tidx][2];
+					plan.textContent = 'Current plan: ' + allteachers[tidx][2];
 					wrapper.appendChild(plan);
 					var changeplan = document.createElement('button');
 					changeplan.setAttribute('class', 'blackbutton');
 					changeplan.setAttribute('onclick', 'changeplan('+allteachers[tidx][2]+','+tidx+')');
-					changeplan.innerHTML = 'Change plan';
+					changeplan.textContent = 'Change plan';
 					wrapper.appendChild(changeplan);
 					var sometext = document.createElement('p');
 					sometext.setAttribute('class', 'thing');
-					sometext.innerHTML = 'Require students:';
+					sometext.textContent = 'Require students:';
 					wrapper.appendChild(sometext);
 					var z = 0;
 					for(i=0; i<allteachers[tidx][3].length;i++){
@@ -170,7 +162,7 @@ function update(user){
 										temp.setAttribute('class', 'button');
 									};
 									temp.setAttribute('id', allteachers[tidx][3][z]);
-									temp.innerHTML = student[0];
+									temp.textContent = student[0];
 									wrapper.append(temp);
 									var b = document.createElement('div');
 									wrapper.append(b);
@@ -196,12 +188,12 @@ function update(user){
 						if(teacher.length<5){
 							var header = document.createElement('h1');
 							header.setAttribute('class', 'thing');
-							header.innerHTML = 'There is no one signed up here.';
+							header.textContent = 'There is no one signed up here.';
 							wrapper.appendChild(header);
 						}else{
 							var header = document.createElement('h1');
 							header.setAttribute('class', 'thing');
-							header.innerHTML = 'Take attendance';
+							header.textContent = 'Take attendance';
 							wrapper.appendChild(header);
 							var z = 0;
 							for(i=0; i<allteachers[tidx][4].length;i++){
@@ -215,17 +207,17 @@ function update(user){
 										temp.setAttribute('onclick', 'toggleattendance('+studentid+' ,'+tidx+','+i+')');
 										temp.setAttribute('class', 'redbutton');
 										temp.setAttribute('id', allteachers[tidx][3][z]);
-										temp.innerHTML = student[0];
+										temp.textContent = student[0];
 										wrapper.append(temp);
 										z++;
 									});            
 								}
 							};
 							var submit = document.createElement('button');
-							sumbit.setAttribute('content', 'Submit');
+							submit.setAttribute('content', 'Submit');
 							submit.setAttribute('onclick', 'submit('+tidx+')');
 							submit.setAttribute('class', 'blackbutton');
-							submit.innerHTML = 'Submit';
+							submit.textContent = 'Submit';
 							wrapper.append(submit);
 						}
 					});
@@ -243,11 +235,8 @@ function update(user){
 		while (wrapper.firstChild) {
     		wrapper.removeChild(wrapper.firstChild);
 		}
-		console.log('did this even finsih');
 	}
 }
-
-//signInButtonElement.addEventListener('click', signIn);
 
 function getData(){
 	var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -267,152 +256,168 @@ function changemax(max, tidx){
 	dbtref.child(tidx).update({1:newmax});
 };
 function submit(tidx, studentids){
-		//This is a powerful function.
-		//Firstly, it checks if it is the first to be submitted. If it is, it will create a spreadsheet with a list of students who did not sign up
-		//Then, it deposits the teacher's attendance. Under the teacher, there will be a section for present students as well as missing students
-		//Then, it will delete the teacher's name from the student side
-		for(x in studentids){
-			dbRef.child(x).child(7).remove(function(error){
-				if(error){
-					alert('Well this is awkward, '+error);
-				};
-			})
-		};
-		//Then, it add one line to the teacherside
-		dbtref.child(tidx).child(4).update({5:"yep"});
-		//Lastly, it will check if it is the last to press submit
-		dbtref.once('value', snap=>{
-			var teachers = snap.val();
-			var last = true;
-			for(x = 0; x<teachers.length; x++){
-				if(teachers[x].length==5){
-					last = false;
-				}
-			}
+	//This is a powerful function.
+	//Firstly, it checks if it is the first to be submitted. If it is, it will create a spreadsheet with a list of students who did not sign up
+	//Then, it deposits the teacher's attendance. Under the teacher, there will be a section for present students as well as missing students
+	//Then, it will delete the teacher's name from the student side
+	for(x in studentids){
+		dbRef.child(x).child(7).remove(function(error){
+			if(error){
+				alert('Well this is awkward, '+error);
+			};
 		})
 	};
-	function toggleattendance(studentid, tidx, stidx){
-		var aclass = document.getElementById(studentid).getAttribute('class');
-		if(aclass == 'redbutton'){
-			document.getElementById(studentid).setAttribute('class', 'button');
-			dbtref.child(tidx).child(4).update({stidx : [studentid, 1]});
-		}else{
-			document.getElementById(studentid).setAttribute('class', 'redbutton');
-			dbtref.child(tidx).child(4).update({stidx : [studentid, 0]});
-		};
+	//Then, it add one line to the teacherside
+	dbtref.child(tidx).child(4).update({5:"yep"});
+	//Lastly, it will check if it is the last to press submit
+	dbtref.once('value', snap=>{
+		var teachers = snap.val();
+		var last = true;
+		for(x = 0; x<teachers.length; x++){
+			if(teachers[x].length==5){
+				last = false;
+			}
+		}
+	})
+};
+
+function toggleattendance(studentid, tidx, stidx){
+	var aclass = document.getElementById(studentid).getAttribute('class');
+	if(aclass == 'redbutton'){
+		document.getElementById(studentid).setAttribute('class', 'button');
+		dbtref.child(tidx).child(4).update({stidx : [studentid, 1]});
+	}else{
+		document.getElementById(studentid).setAttribute('class', 'redbutton');
+		dbtref.child(tidx).child(4).update({stidx : [studentid, 0]});
 	};
-	function togglerequire(studentid, tidx, oldloc){
-		var aclass = document.getElementById(studentid).getAttribute('class');
-		if(aclass=='blackbutton'){
-			alert('This student is already required somewhere else.');
-		}else if(aclass == 'button'){
-			document.getElementById(studentid).setAttribute('class', 'redbutton');
-			dbtref.child(tidx.toString()).child("4").update({[num]:[studentid, 0]});
-			var newloc = "r"+tname;
-			dbtref.once('value', snap=>{
-				var allteachers = snap.val();
-				if(allteachers[tidx].length< 5){
-					var num = 0;
-				}else{
-					var num = allteachers[tidx][4].length;
+};
+
+function togglerequire(studentid, tidx, oldloc){
+	var aclass = document.getElementById(studentid).getAttribute('class');
+	if(aclass=='blackbutton'){
+		alert('This student is already required somewhere else.');
+	}else if(aclass == 'button'){
+		document.getElementById(studentid).setAttribute('class', 'redbutton');
+		dbtref.child(tidx.toString()).child("4").update({[num]:[studentid, 0]});
+		var newloc = "r"+tname;
+		dbtref.once('value', snap=>{
+			var allteachers = snap.val();
+			if(allteachers[tidx].length< 5){
+				var num = 0;
+			}else{
+				var num = allteachers[tidx][4].length;
+			}
+			myidx = -1;
+			if(oldloc>=0){
+				var myidx = -1;
+				for(i=0;i<allteachers[oldloc][4].length; i++){
+					if(allteachers[oldloc][4][i][0]==studentid){
+						myidx = i;
+						break;
+					}
 				}
-				myidx = -1;
-				if(oldloc>=0){
-					var myidx = -1;
-					for(i=0;i<allteachers[oldloc][4].length; i++){
-						if(allteachers[oldloc][4][i][0]==studentid){
+			}
+			num = num.toString();
+			studentid = studentid.toString();
+		})
+		dbtref.child(oldloc.toString()).child('4').child(myidx.toString()).remove(function(error){
+			if(error){alert('oops, this is not going to work');};});
+		dbRef.child(studentid).update({9:newloc});
+	}else{
+		dbRef.child(studentid).update({9:tname});
+		document.getElementById(studentid).setAttribute('class', 'button');
+	};
+
+
+};
+
+function signup(a){
+	dbRef.once('value', snapshot => {
+		allvals = snapshot.val();
+		dbtref.once('value', snap=>{
+			var teachers = snap.val();
+			var today = new Date();
+			var closed = (today.getHours()<13 ||(today.getHours()==13 && today.getMinutes()<47));
+			var required = (allvals.length>9 && allvals[6].substring(0, 1)=="r");
+			oldloc = allvals[id][9];
+			var full = true;
+			var tidx = -1;
+			for(i=0;i<teachers.length;i++){//test if teacher's class is full
+				if(teachers[i][0]==a){//find requested teachers
+					if(teachers[i].length<5){
+						full = true;
+					}else{
+						full = teachers[i][1]<teachers[i][4].length;
+					}
+					tidx = i;
+					break;
+				};
+			};
+			if(closed&!required&&full){ // add name on teacher side
+				if (allvals[id].length<10){
+					if(teachers[tidx].length<5){//first person to sign up
+						dbtref.child(tidx.toString()).update({ 4: [id, 0]});
+					}else{//not first person to sign up
+						var len = 2;//teachers[tidx][4].length;
+						dbtref.child(tidx.toString()).child('4').update({len: [id, 0]});
+					}
+				}else{//if they were previously signed up
+					var oldtidx = -1;
+					for(i=0;i<teachers.length;i++){
+						if(teachers[i][0]==oldloc){
+							if(teachers[i].length<5){//no one is signed up
+								full = true;
+							}else{//some people are signed up
+								full = teachers[i][1]<teachers[i][4].length;
+							}
+							oldtidx = i;
+							break;
+						};
+					};
+					var myidx = 0;
+					for(i=0;i<teachers[oldtidx][4].length; i++){
+						if(teachers[oldtidx][4][i][0]==id){
 							myidx = i;
 							break;
 						}
 					}
-				}
-				num = num.toString();
-				studentid = studentid.toString();
-			})
-			dbtref.child(oldloc.toString()).child('4').child(myidx.toString()).remove(function(error){
-				if(error){alert('oops, this is not going to work');};});
-			dbRef.child(studentid).update({9:newloc});
-		}else{
-			dbRef.child(studentid).update({9:tname});
-			document.getElementById(studentid).setAttribute('class', 'button');
-		};
-
-
-	};
-	function signup(a){
-		dbRef.once('value', snapshot => {
-			allvals = snapshot.val();
-			dbtref.once('value', snap=>{
-				var teachers = snap.val();
-				var today = new Date();
-				var closed = (today.getHours()<13 ||(today.getHours()==13 && today.getMinutes()<47));
-				var required = (allvals.length>9 && allvals[6].substring(0, 1)=="r");
-				oldloc = allvals[id][9];
-				var full = true;
-				var tidx = -1;
-				for(i=0;i<teachers.length;i++){//test if teacher's class is full
-					if(teachers[i][0]==a){//find requested teachers
-						if(teachers[i].length<5){
-							full = true;
-						}else{
-							full = teachers[i][1]<teachers[i][4].length;
-						}
-						tidx = i;
-						break;
+					dbtref.child(oldtidx.toString()).child('4').child(myidx.toString()).remove(function(error){
+						if(error){alert('oops, this is not going to work');};});
+					if(teachers[tidx].length<5){
+						dbtref.child(tidx.toString()).update({ 4: [id, 0]});
+					}else{
+						var len = dbtref.child(tidx.toString()).child('4').length;
+						dbtref.child(tidx.toString()).child('4').update({len : [id, 0]});
 					};
 				};
-				if(closed&!required&&full){ // add name on teacher side
-					if (allvals[id].length<10){
-						if(teachers[tidx].length<5){//first person to sign up
-							dbtref.child(tidx.toString()).update({ 4: [id, 0]});
-						}else{//not first person to sign up
-							var len = 2;//teachers[tidx][4].length;
-							dbtref.child(tidx.toString()).child('4').update({len: [id, 0]});
-						}
-					}else{//if they were previously signed up
-						var oldtidx = -1;
-						for(i=0;i<teachers.length;i++){
-							if(teachers[i][0]==oldloc){
-								if(teachers[i].length<5){//no one is signed up
-									full = true;
-								}else{//some people are signed up
-									full = teachers[i][1]<teachers[i][4].length;
-								}
-								oldtidx = i;
-								break;
-							};
-						};
-						var myidx = 0;
-						for(i=0;i<teachers[oldtidx][4].length; i++){
-							if(teachers[oldtidx][4][i][0]==id){
-								myidx = i;
-								break;
-							}
-						}
-						dbtref.child(oldtidx.toString()).child('4').child(myidx.toString()).remove(function(error){
-							if(error){alert('oops, this is not going to work');};});
-						if(teachers[tidx].length<5){
-							dbtref.child(tidx.toString()).update({ 4: [id, 0]});
-						}else{
-							var len = dbtref.child(tidx.toString()).child('4').length;
-							dbtref.child(tidx.toString()).child('4').update({len : [id, 0]});
-						};
-					};
-					dbRef.child(id).update({ 9: a});
-					alert("You are signed up with "+a+'\n'+teachers[tidx][2]);
+				dbRef.child(id).update({ 9: a});
+				alert("You are signed up with "+a+'\n'+teachers[tidx][2]);
 
-				}else if(!closed &!full){
-					alert("You are required with "+ allvals[id][9].substring(1));
-				}else if(!full &&closed){
-					alert(a + " is full");
-				}else{
-					alert("Signup is closed, you are signed up with " + allvals[id][9]);
-				}
-			});
-			
+			}else if(!closed &!full){
+				alert("You are required with "+ allvals[id][9].substring(1));
+			}else if(!full &&closed){
+				alert(a + " is full");
+			}else{
+				alert("Signup is closed, you are signed up with " + allvals[id][9]);
+			}
 		});
+		
+	});
 
-	};
+};
 
 //initialize firebase
 initFirebaseAuth();
+
+//stuff for web app support
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('/sw.js').then(function(registration) {
+      // Registration was successful
+      console.log('ServiceWorker registration successful with scope: ', registration.scope);
+    }, function(err) {
+      // registration failed :(
+      console.log('ServiceWorker registration failed: ', err);
+    });
+  });
+}

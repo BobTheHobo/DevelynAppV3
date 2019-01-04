@@ -1,52 +1,58 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="description" content="A web app for D'Evelyn Jr/Sr High School.">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Seventh Hour Sign Up</title>
+  <head>
+    <meta charset="utf-8">
+    <meta name="description" content="A web app for D'Evelyn Jr/Sr High School, created by Megan Smith and Viet Ngomai">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seventh Hour Sign Up</title>
 
-  <!--Web App Manifest -->
-  <link rel="manifest" href="manifest.json">
+    <!--Web App Manifest -->
+    <link rel="manifest" href="manifest.json">
 
-  <!-- Add to homescreen for Chrome on Android -->
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="application-name" content="7th Hour App">
-  <meta name="theme-color" content="#0B610B">
+    <!-- Add to homescreen for Chrome on Android -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="7th Hour App">
+    <meta name="theme-color" content="#0B610B">
 
-  <!-- Add to homescreen for Safari on iOS -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="7th Hour App">
-  <meta name="apple-mobile-web-app-status-bar-style" content="#0B610B">
+    <!-- Add to homescreen for Safari on iOS -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="7th Hour App">
+    <meta name="apple-mobile-web-app-status-bar-style" content="#0B610B">
 
-  <!-- Tile icon for Win8 (prob won't be used) -->
-  <meta name="msapplication-TileColor" content="#3372DF">
-  <meta name="msapplication-navbutton-color" content="#303F9F">
+    <!-- Tile icon for Win8 (prob won't be used) -->
+    <meta name="msapplication-TileColor" content="#3372DF">
+    <meta name="msapplication-navbutton-color" content="#303F9F">
 
-	<script src="https://apis.google.com/js/platform.js" async defer></script>
+  	<script src="https://apis.google.com/js/platform.js" async defer></script>
 
-  <!-- App Styling -->
-  <link rel="stylesheet" href="styles/main.css">
-</head>
+    <!-- App Styling -->
+    <link rel="stylesheet" href="styles/main.css">
+  </head>
 
-<body>
-	<!-- Page Formatting -->
-	<div id="loginStuff">
-    <button hidden id="loginButton" class="button" onclick="login()">Log in with Google</button>
-    <button hidden id="logoutButton" class="button" onclick="logout()">Sign Out</button>
-	</div>
+  <body>
+  	<!-- Page Formatting -->
+    <header>
+    	<div id="loginHeader">
+        <div hidden id="student-pic"></div>
+        <div hidden id="student-num"></div>
+        <button hidden id="loginButton" class="button" onclick="login()">Log in with Google</button>
+        <button hidden id="logoutButton" class="button" onclick="logout()">Sign Out</button>
+    	</div>
+    </header>
 
-  <div id="divWrapper">
-  </div>
+    <main>
+      <div id="divWrapper">
+      </div>
+    </main>
 
-  <!-- Import Firebase SDK libraries-->
-  <script src="/__/firebase/5.7.0/firebase-app.js"></script>
-  <script src="/__/firebase/5.7.0/firebase-auth.js"></script>
-  <script src="/__/firebase/5.7.0/firebase-database.js"></script>
-  <script src="/__/firebase/init.js"></script>
+    <!-- Import Firebase SDK libraries-->
+    <script src="/__/firebase/5.7.0/firebase-app.js"></script>
+    <script src="/__/firebase/5.7.0/firebase-auth.js"></script>
+    <script src="/__/firebase/5.7.0/firebase-database.js"></script>
+    <script src="/__/firebase/init.js"></script>
 
-  <!-- load script-->
-  <script src="scripts/main.js"></script>
-</body>
+    <!-- load script-->
+    <script src="scripts/main.js" async></script>
+  </body>
 </html>

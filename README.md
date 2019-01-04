@@ -1,4 +1,5 @@
 # DevelynAppV3
 
+An app for D'Evelyn Jr/Sr High School's 7th hour sign ups
 
-	LMAO if you're reading this I have no idea what i'm doing yeet
+Created by Megan Smith and Viet Ngomai
