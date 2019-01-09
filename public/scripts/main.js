@@ -237,7 +237,6 @@ function update(user){
 		}
 	}
 }
-*/
 	      var now = new Date();
       if(now.getHours()>14 || now.getHours()<7){
       	dbRef.once('value', snapshot=>{
