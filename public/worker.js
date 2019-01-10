@@ -6,7 +6,6 @@ var urlsToCache = [
     './styles/main.css',
     './images/develyn-logo192.png',
     './images/develyn-logo512.png'
-    //'./script/main.js' --this will create an infinite loop btw
 ]
 
 // during the install phase you usually want to cache static assets

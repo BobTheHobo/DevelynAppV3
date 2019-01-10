@@ -1,3 +1,7 @@
+//TODO: figure out who is a teacher and who is a student and then update accordingly
+//TODO: parse out spaghetti code
+//TODO: imporve css
+//TODO: 
 var loggedin = false;
 var role = 'teacher';
 var tname = 'Mr. Murphy';
@@ -10,6 +14,7 @@ var attendanceRef = firebase.database().ref().child('attendance'); //Attendence 
 var loginB = document.getElementById('loginButton');
 var logoutB = document.getElementById('logoutButton');
 var wrapper = document.getElementById("divWrapper");
+var btnAdd = document.getElementById('butPrompt');
 
 //shows login button and hides logout button
 function showLogin(){
@@ -32,6 +37,25 @@ function login() {
 // Sign out of Firebase.
 function logout() {
   firebase.auth().signOut();
+}
+
+//Get student Number
+function getStudentID(){
+	var email = firebase.auth().currentUser.email;
+	if(email.substring(6).equals("jeffcoschools.us")){
+		return email.substring(0,5);
+	}
+}
+
+//get teacher id
+function get teacherID(){
+	var email = firebase.auth().currentUser.email;
+	if(email.endsWith())
+}
+
+//get name of the signed in user.
+function getUserName() {
+  return firebase.auth().currentUser.displayName;
 }
 
 //user should be checked out at start
@@ -421,8 +445,6 @@ if ('serviceWorker' in navigator) {
     });
   });
 }
-
-var btnAdd = document.getElementById('butPrompt');
 
 let deferredPrompt;
 
