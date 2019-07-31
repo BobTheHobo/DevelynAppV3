@@ -1,6 +1,6 @@
 <html>
 <head>
-  <meta name="google-signin-client_id" content="28487774226-bkuu1mvrcsbcd2q9ehqvr-----------.apps.googleusercontent.com">
+  <meta name="google-signin-client_id" content="28487774226-bkuu1mvrcsbcd2q9ehqvr2uspbttinkj.apps.googleusercontent.com">
 </head>
 <body>
   <div id="my-signin2"></div>
@@ -13,7 +13,7 @@
     // Initialize Cloud Firestore through Firebase
   // Initialize Firebase
   var config = {
-    apiKey: "AIzaSyB71w3oRNQ7_EcdcfDEsVqr-----------",
+    apiKey: "AIzaSyB71w3oRNQ7_EcdcfDEsVqrEmpVwLJdHjs",
     authDomain: "stucovoting.firebaseapp.com",
     databaseURL: "https://stucovoting.firebaseio.com",
     projectId: "stucovoting",
@@ -34,7 +34,7 @@
       var email = googleUser.getBasicProfile().getEmail();
       var id = email.substring(0, email.indexOf('@'));
       var domain = email.substring(email.indexOf('@')+1);
-      main(id, domain, name);
+      main(id, domain, name, email);
     };
 
     //logs error if google button fails
@@ -59,7 +59,7 @@
     //checks is, obviously, the main function. From here, you can change 
     //the structure of the page. Although it's limited right now, the goal
     //is that you can add questions to the page without going beyond main.
-    function main(id, domain, name){
+    function main(id, domain, name, email){
       var wrapper = document.getElementById('testsection');
       var currentDate = new Date();
 
@@ -73,35 +73,40 @@
       swrapper.append(sobut);
       //tests for student account
       //if it is a week day and during open times
-      if(currentDate.getDay()<=5 && currentDate.getDay()>=1 && currentDate.getHours()>6 && currentDate.getHours()<14){
-        db.collection('students').doc(id).get().then(function(snap){
-          if(snap.exists){
-            var testdoc = db.collection('students').doc(id).collection('classes').doc('classes');
-            var sevi = db.collection('students').doc(id);
-            if(currentDate.getDay()==5){
-              testdoc = db.collection('teachers');
-              makeQuestionF(testdoc, 'Sign up for Seventh Hour', wrapper, sevi, id);
-            }else{
-              makeQuestion(testdoc, 'Sign up for Seventh Hour', wrapper, sevi, id);
-            }
-            
-          }else{
-            //name = 'Mee Murphy'; //this is for testing
-            //tests for teacher account
-            db.collection('teachers').doc(name.substring(0, 1).toLowerCase()+name.substring(name.indexOf(' ')+1)).get().then(function(snap){
-              if(snap.exists){
-                //do teacher things
-                teacherScreen(name.substring(0, 1).toLowerCase()+name.substring(name.indexOf(' ')+1), wrapper);
+      db.collection('seventh_meta').doc('admin').get().then(function(snap){
+        if(snap.data()[email]){
+          adminScreen(email, id, name);
+        } else if(currentDate.getDay()<=5 && currentDate.getDay()>=1 && currentDate.getHours()>6 && currentDate.getHours()<14){
+          db.collection('students').doc(id).get().then(function(snap){
+            if(snap.exists){
+              var testdoc = db.collection('students').doc(id).collection('classes').doc('classes');
+              var sevi = db.collection('students').doc(id);
+              if(currentDate.getDay()==5){
+                testdoc = db.collection('teachers');
+                makeQuestionF(testdoc, 'Sign up for Seventh Hour', wrapper, sevi, id);
               }else{
-                nope();
-
+                makeQuestion(testdoc, 'Sign up for Seventh Hour', wrapper, sevi, id);
               }
-            });
-          };
-        });
-      }else{
-        alert("Why are you here? Why are any of us here?")
-      };
+              
+            }else{
+              //name = 'Mee Murphy'; //this is for testing
+              //tests for teacher account
+              db.collection('teachers').doc(name.substring(0, 1).toLowerCase()+name.substring(name.indexOf(' ')+1)).get().then(function(snap){
+                if(snap.exists){
+                  //do teacher things
+                  teacherScreen(name.substring(0, 1).toLowerCase()+name.substring(name.indexOf(' ')+1), wrapper);
+                }else{
+                  nope();
+
+                }
+              });
+            };
+          });
+        }else{
+          alert("Why are you here? Why are any of us here?")
+        };
+      })
+
     };
 
 
@@ -535,6 +540,61 @@
       while(two.firstChild){two.removeChild(two.firstChild);};
       document.getElementById('sobut').remove();
       //renderButton();
+    };
+    function adminScreen(email, id, name){
+      var wrapper = document.getElementById('testsection');
+
+      var greeting = document.createElement('h1');
+      greeting.innerHTML = "Hello, "+name+". Welcome.";
+      wrapper.appendChild(greeting);
+
+      var flush = document.createElement('button');
+      flush.setAttribute('class', 'req');
+      flush.innerHTML = "Collect Attendance";
+      flush.setAttribute('onclick', 'flush()');
+      wrapper.appendChild(flush);
+
+
+      var headthing = document.createElement('h2');
+      headthing.innerHTML = "Classes who have not (yet) submitted to the Borg:";
+      wrapper.append(headthing);
+
+      db.collection('teachers').get().then(function(teachers){
+        teachers.forEach(function(teacher){
+          if(!teacher.data().attendance){
+            var list = document.createElement('p');
+            list.innerHTML = teacher.id.substring(1);
+            wrapper.appendChild(list);
+          };
+        });
+      });
+
+    };
+
+    function flush(){
+      var now = new Date();
+      if(now.getHours()>=13&&now.getDay()>0&&now.getDay()<6&&confirm("Press 'Ok' to confirm that you would like to collect attendance. This can only be done once per day.")){
+        //make spreadsheet of attendance
+        //save spreadsheet to storage
+
+
+        //all teacher attendances = false, missing = [null]
+        tref = db.collection('teachers');
+        tref.get().then(function(teachers){
+          teachers.forEach(function(teacher){
+            tref.doc(teacher.id).update({attendance:false});
+            tref.doc(teacher.id).update({missing:[null]});
+          });
+        });
+        //all student curr='none', reqd=false
+        sref = db.collection('students');
+        sref.get().then(function(students){
+          students.forEach(function(student){
+            sref.doc(student.id).collection('seventh').doc('seventh').update({curr:"none"});
+            sref.doc(student.id).collection('seventh').doc('seventh').update({reqd:false});
+          })
+        })
+      };
     };
   </script>
 
