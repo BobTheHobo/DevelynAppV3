@@ -1,6 +1,6 @@
 <html>
 <head>
-  <meta name="google-signin-client_id" content="28487774226-bkuu1mvrcsbcd2q9ehqvr2uspbttinkj.apps.googleusercontent.com">
+  <meta name="google-signin-client_id" content="28487774226-bkuu1mvrcsbcd2q9ehqvr-----------.apps.googleusercontent.com">
 </head>
 <body>
   <div id="my-signin2"></div>
@@ -13,7 +13,7 @@
     // Initialize Cloud Firestore through Firebase
   // Initialize Firebase
   var config = {
-    apiKey: "AIzaSyB71w3oRNQ7_EcdcfDEsVqrEmpVwLJdHjs",
+    apiKey: "AIzaSyB71w3oRNQ7_EcdcfDEsVqr-----------",
     authDomain: "stucovoting.firebaseapp.com",
     databaseURL: "https://stucovoting.firebaseio.com",
     projectId: "stucovoting",
@@ -22,6 +22,7 @@
   };
   firebase.initializeApp(config);
   var db = firebase.firestore();
+  var stor = firebase.storage();
   function signOut() {
     var auth2 = gapi.auth2.getAuthInstance();
     auth2.signOut().then(function () {
@@ -573,10 +574,51 @@
 
     function flush(){
       var now = new Date();
-      if(now.getHours()>=13&&now.getDay()>0&&now.getDay()<6&&confirm("Press 'Ok' to confirm that you would like to collect attendance. This can only be done once per day.")){
+      if(now.getHours()>=0&&now.getDay()>0&&now.getDay()<6&&confirm("Press 'Ok' to confirm that you would like to collect attendance. This can only be done once per day.")){
         //make spreadsheet of attendance
-        //save spreadsheet to storage
+        var sAllAtt = [];
+        var tAllAtt = [];
 
+        //Get Student data
+        db.collection('students').get().then(function(students){
+          students.forEach(function(student){
+            db.collection('students').doc(student.id).collection('seventh').doc('seventh').get().then(function(sev){
+              db.collection('teachers').doc(sev.data().curr).get().then(function(teach){
+                if(teach.data()&&teach.data().missing.includes(student.id)&&teach.data().attendance){
+                  sAllAtt.push([student.id, sev.data().curr, 'Missing']);
+                }else if(teach.data()&&teach.data().attendance){
+                  sAllAtt.push([student.id, sev.data().curr, 'Present']);
+                }else if(teach.data()){
+                  sAllAtt.push([student.id, sev.data().curr, 'No Attendance taken']);
+                }else{
+                  sAllAtt.push([student.id, 'Not Signed up', 'N/A']);
+                }
+              });
+            });
+          });
+        });
+
+        //Get teacher data
+        db.collection('teachers').get().then(function(teachers){
+          teachers.forEach(function(teacher){
+            tAllAtt.push([teacher.id, teacher.data().attendance]);
+          });
+        });
+
+        //Put lists together and make csv
+        var allAtt = sAllAtt + tAllAtt;
+        var fAtt = [];
+        for(index=0;index<allAtt.length;index++){
+          var val = allAtt[index];
+          var line = val.join(",");
+          fAtt.push(index == 0 ? "data:text/csv;charset=utf-8," + line : line);
+        };
+        fAtt = fAtt.join("\n");
+        var blob = new Blob([fAtt], { type: 'text/csv;charset=utf-8;' });
+        var fileName = String(now.getMonth()+1) + '.' + String(now.getDate()) + '.' + String(now.getYear()).substring(1) + '.csv';
+        var attendance = new File([blob], fileName);
+        //save spreadsheet to storage
+        stor.ref('attendance_records/'+fileName).put(blob).then(snap=>{alert('Success!')});
 
         //all teacher attendances = false, missing = [null]
         tref = db.collection('teachers');
