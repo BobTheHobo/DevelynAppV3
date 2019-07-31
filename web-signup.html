@@ -74,7 +74,7 @@
       //if it is a week day and during open times
       if(currentDate.getDay()<=5 && currentDate.getDay()>=1 && currentDate.getHours()>6 && currentDate.getHours()<14){
         db.collection('students').doc(id).get().then(function(snap){
-          if(snap.exists){
+          if(!snap.exists){
             var testdoc = db.collection('students').doc(id).collection('classes').doc('classes');
             var sevi = db.collection('students').doc(id);
             if(currentDate.getDay()==5){
@@ -85,7 +85,7 @@
             }
             
           }else{
-            //name = 'Mee Murphy'; //this is for testing
+            name = 'Mee Murphy'; //this is for testing
             //tests for teacher account
             db.collection('teachers').doc(name.substring(0, 1).toLowerCase()+name.substring(name.indexOf(' ')+1)).get().then(function(snap){
               if(snap.exists){
@@ -121,28 +121,37 @@
       //Add all of the options to the form
       field.get().then(function(snap){
         var classes = snap.data();
+        db.collection('teachers').get().then(function(teachers){
+          teachers.forEach(function(teacher){
+            for(ateacher in classes){
+              if( classes[ateacher]==teacher.id){
+                var thing = classes[ateacher];
+                //Add radio button
+                var inp = document.createElement('input');
+                inp.setAttribute('type', 'radio');
+                inp.setAttribute('value', thing.substring(1));
+                inp.setAttribute('id', thing+'button');
+                inp.setAttribute('name', name);
+                inp.setAttribute('value', thing);
+                form.appendChild(inp);
+
+                //Add label on radio button
+                var label = document.createElement('label');
+                label.setAttribute('id', thing+'label');
+                label.setAttribute('name', thing+'label')
+                label.innerHTML = thing.substring(1) + ': '+teacher.data().description;
+                form.appendChild(label);
+
+                //Add a new line
+                var br = document.createElement('br');
+                form.appendChild(br);
+              };
+            }
+          });
+        });
         var x = 0;
         while(classes[x]!=undefined){
-          var thing = classes[x];
-          //Add radio button
-          var inp = document.createElement('input');
-          inp.setAttribute('type', 'radio');
-          inp.setAttribute('value', thing.substring(1));
-          inp.setAttribute('id', thing+'button');
-          inp.setAttribute('name', name);
-          inp.setAttribute('value', thing);
-          form.appendChild(inp);
 
-          //Add label on radio button
-          var label = document.createElement('label');
-          label.setAttribute('id', thing+'label');
-          label.setAttribute('name', thing+'label')
-          label.innerHTML = thing.substring(1);
-          form.appendChild(label);
-
-          //Add a new line
-          var br = document.createElement('br');
-          form.appendChild(br);
           x ++;
         };
       });
@@ -226,13 +235,17 @@
     //This is easy enough to change, but honestly, I'm picking my battles
     //right now.
     function ocSubmit(title, id){
+      var now = new Date();
       sev = db.collection('students').doc(id).collection('seventh').doc('seventh');
       sev.get().then(function(snap){
         var reqd = snap.data().reqd;
         curr = snap.data().curr;
         if(reqd==true){
           alert("You are required in " + curr);
-        } else{
+        } else if(now.getHour()>=13){
+          alert("It's too late");
+          restart();
+        }else{
           //get their choice of teacher
           var sel = document.querySelector("input[name='"+title+"']:checked");
           if(sel){ //if they chose a teacher
@@ -282,6 +295,7 @@
       db.collection('teachers').doc(name).get().then(function(snap){
         var max = snap.data().max;
         var description = snap.data().description;
+        var num = snap.data().num;
 
         //change max
         var form = document.createElement('form');
@@ -345,22 +359,25 @@
             sReq.setAttribute('type', 'button');
             sReq.setAttribute('id', s);
 
-            
-            if (sevs.reqd&&sevs.curr==name){
-              sReq.setAttribute('class', 'ureq');
-              sReq.setAttribute('value', 'Unrequire');
-              sReq.setAttribute('onclick', 'reqFunc("'+s+'", 1,"'+name+'")');
-            }else if(sevs.reqd){
-              sReq.setAttribute('class', 'nreq');
-              sReq.setAttribute('value', 'Required');
-              sReq.setAttribute('onclick', 'reqFunc("'+s+'", 0,"'+name+'")');
-            }else{
-              sReq.setAttribute('class', 'req');
-              sReq.setAttribute('value', 'Require');
-              sReq.setAttribute('onclick', 'reqFunc("'+s+'", 2,"'+name+'")');
-            };
-            aform.appendChild(sReq);
-            wrappert.appendChild(aform);
+            db.collection('teachers').doc(name).get().then(function(teacher){
+              var num = teacher.data().num;
+              if (sevs.reqd&&sevs.curr==name){
+                sReq.setAttribute('class', 'ureq');
+                sReq.setAttribute('value', 'Unrequire');
+                sReq.setAttribute('onclick', 'reqFunc("'+s+'", 1,"'+name+'", "'+num+'")');
+              }else if(sevs.reqd){
+                sReq.setAttribute('class', 'nreq');
+                sReq.setAttribute('value', 'Required');
+                sReq.setAttribute('onclick', 'reqFunc("'+s+'", 0,"'+name+'", "'+num+'")');
+              }else{
+                sReq.setAttribute('class', 'req');
+                sReq.setAttribute('value', 'Require');
+                sReq.setAttribute('onclick', 'reqFunc("'+s+'", 2,"'+name+'", "'+num+'")');
+              };
+              aform.appendChild(sReq);
+              wrappert.appendChild(aform);
+            })
+
           });
 
         });
@@ -393,7 +410,7 @@
     };
 
     //onclick for require buttons
-    function reqFunc(id, num, name){
+    function reqFunc(id, num, name, numb){
       var button = document.getElementById(id);
       if(num==0){
         alert("This student is already required in another class.");
@@ -402,12 +419,14 @@
         button.setAttribute('class', 'req');
         button.setAttribute('onclick', 'reqFunc("'+id+'", 2,"'+name+'")');
         db.collection('students').doc(id).collection('seventh').doc('seventh').update({reqd:false});
+        
       }else{
         button.setAttribute('value', 'Unrequire');
         button.setAttribute('class', 'ureq');
         button.setAttribute('onclick', 'reqFunc("'+id+'", 1,"'+name+'")');
         db.collection('students').doc(id).collection('seventh').doc('seventh').update({reqd:true});
         db.collection('students').doc(id).collection('seventh').doc('seventh').update({curr:name});
+        db.collection('teachers').doc(name).update({num:numb+1});
       };
 
     };
