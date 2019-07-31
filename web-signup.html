@@ -6,6 +6,7 @@
   <div id="my-signin2"></div>
   <div id="testsection"></div>
   <div id="second"></div>
+
   <script src="https://www.gstatic.com/firebasejs/5.8.5/firebase.js"></script>
 
   <script>
@@ -74,7 +75,7 @@
       //if it is a week day and during open times
       if(currentDate.getDay()<=5 && currentDate.getDay()>=1 && currentDate.getHours()>6 && currentDate.getHours()<14){
         db.collection('students').doc(id).get().then(function(snap){
-          if(!snap.exists){
+          if(snap.exists){
             var testdoc = db.collection('students').doc(id).collection('classes').doc('classes');
             var sevi = db.collection('students').doc(id);
             if(currentDate.getDay()==5){
@@ -85,7 +86,7 @@
             }
             
           }else{
-            name = 'Mee Murphy'; //this is for testing
+            //name = 'Mee Murphy'; //this is for testing
             //tests for teacher account
             db.collection('teachers').doc(name.substring(0, 1).toLowerCase()+name.substring(name.indexOf(' ')+1)).get().then(function(snap){
               if(snap.exists){
@@ -242,7 +243,7 @@
         curr = snap.data().curr;
         if(reqd==true){
           alert("You are required in " + curr);
-        } else if(now.getHour()>=13){
+        } else if(now.getHours()==12 && now.getMinutes()>=46 || now.getHours()>12){
           alert("It's too late");
           restart();
         }else{
@@ -290,100 +291,157 @@
     function teacherScreen(name, wrapper){
       var wrapper = document.getElementById('testsection');
       var br = document.createElement('br');
+      var now = new Date();
       wrapper.appendChild(br);
-      
-      db.collection('teachers').doc(name).get().then(function(snap){
-        var max = snap.data().max;
-        var description = snap.data().description;
-        var num = snap.data().num;
-
-        //change max
-        var form = document.createElement('form');
-        form.setAttribute('id', 'form');
-        var maxlabel = document.createElement('label');
-        maxlabel.setAttribute('id', 'maxlabel');
-        maxlabel.setAttribute('name', 'max');
-        maxlabel.innerHTML = 'Change maximum number of students:     ';
-        form.appendChild(maxlabel);
-        var maxInput = document.createElement('input');
-        maxInput.setAttribute('type', 'number');
-        maxInput.setAttribute('id', 'maxinput');
-        maxInput.setAttribute('name', 'max');
-        maxInput.setAttribute('placeholder', max)
-        form.appendChild(maxInput);
-        form.appendChild(br);
-
-        //change description
-        var descriptionlabel = document.createElement('label');
-        descriptionlabel.setAttribute('id', 'descriptionlabel');
-        descriptionlabel.setAttribute('name', 'description');
-        descriptionlabel.innerHTML = 'Change your seventh hour description:     ';
-        form.appendChild(descriptionlabel);
-        var descriptioninput = document.createElement('input');
-        descriptioninput.setAttribute('type', 'text');
-        descriptioninput.setAttribute('id', 'descriptioninput');
-        descriptioninput.setAttribute('name', 'description');
-        descriptioninput.setAttribute('placeholder', description);
-        form.appendChild(descriptioninput);
-
-        wrapper.appendChild(form);
-
-        //make submit button
-        var subbut = document.createElement('button');
-        subbut.setAttribute('class', 'thisthing');
-        subbut.setAttribute('onclick', 'teacherSubmit("'+name+'")');
-        subbut.innerHTML = 'Submit';
-        wrapper.appendChild(subbut);
-
-      });
-      wrapper.appendChild(br);
-
-      wrappert = document.getElementById('second');
-      var req = document.createElement('h1');
-      req.innerHTML = "Require Students";
-      wrappert.appendChild(req);
-      //alphabetically list students with 'require' button that changes from green/require to red/unrequire depending on if the student has been required
-      studentsAlph = db.collection('students').orderBy('name', 'asc');
-      studentsAlph.get().then(function(snap){
-        snap.forEach(function(student){
-          var s = student.id;
-          db.collection('students').doc(s).collection('seventh').doc('seventh').get().then(function(snapshot){
+      var sturef = db.collection('students');
+      if(true){//now.getHours()==12 && now.getMinutes()>=46 || now.getHours()>12){
+        db.collection('teachers').doc(name).get().then(function(snap){
+          if(snap.data().num==0){
+            alert('Either no one signed up for your class, or attendance has been closed.');
+          }else{
+            var attendance = document.createElement('h1');
+            attendance.innerHTML = "Take Attendance";
+            wrapper.append(attendance);
 
             var aform = document.createElement('form');
-            var sevs = snapshot.data();
-            var sName = document.createElement('label');
-            sName.innerHTML = student.data().name + "          ";
-            aform.appendChild(sName);
+            db.collection('students').get().then(function(snapshot){
+              snapshot.forEach(function(student){
+                sturef.doc(student.id).collection('seventh').doc('seventh').get().then(function(sevchoices){
+                    if(sevchoices.data().curr==name){
+                      var slabel = document.createElement('label');
+                      slabel.innerHTML = student.data().name+ "     ";
+                      aform.appendChild(slabel);
 
-            var sReq = document.createElement('input');
-            sReq.setAttribute('type', 'button');
-            sReq.setAttribute('id', s);
+                      var sbut = document.createElement('input');
+                      sbut.setAttribute('type', 'button');
+                      sbut.setAttribute('id', student.id);
+                      if(snap.data().missing && snap.data().missing.includes(student.id)){
+                        sbut.setAttribute('class', 'ureq');
+                        sbut.setAttribute('value', 'Missing');
+                        sbut.setAttribute('onclick', 'ocAt("'+student.id+'",1,"'+name+'")');
+                      }else{
+                        sbut.setAttribute('class', 'req');
+                        sbut.setAttribute('value', 'Present');
+                        sbut.setAttribute('onclick', 'ocAt("'+student.id+'",0,"'+name+'")');
+                      }
+                      aform.appendChild(sbut);
+                      var br = document.createElement('br');
+                      aform.appendChild(br);
 
-            db.collection('teachers').doc(name).get().then(function(teacher){
-              var num = teacher.data().num;
-              if (sevs.reqd&&sevs.curr==name){
-                sReq.setAttribute('class', 'ureq');
-                sReq.setAttribute('value', 'Unrequire');
-                sReq.setAttribute('onclick', 'reqFunc("'+s+'", 1,"'+name+'", "'+num+'")');
-              }else if(sevs.reqd){
-                sReq.setAttribute('class', 'nreq');
-                sReq.setAttribute('value', 'Required');
-                sReq.setAttribute('onclick', 'reqFunc("'+s+'", 0,"'+name+'", "'+num+'")');
-              }else{
-                sReq.setAttribute('class', 'req');
-                sReq.setAttribute('value', 'Require');
-                sReq.setAttribute('onclick', 'reqFunc("'+s+'", 2,"'+name+'", "'+num+'")');
-              };
-              aform.appendChild(sReq);
-              wrappert.appendChild(aform);
-            })
+                    }
+                })
+              });
+            });
+            var subbut = document.createElement('button');
+            subbut.setAttribute('id', 'atSubbut');
+            subbut.setAttribute('class', 'req');
+            subbut.innerHTML = 'Submit';
+            subbut.setAttribute('onclick', 'ocSubAtt("'+name+'")');
 
-          });
+            wrapper.appendChild(aform);
+            wrapper.appendChild(subbut);
+          };
+        });
+      }else if (now.getHours()==12 && now.getMinutes()<=46 || now.getHours()<12){
+        db.collection('teachers').doc(name).get().then(function(snap){
+          var max = snap.data().max;
+          var description = snap.data().description;
+          var num = snap.data().num;
+
+          //change max
+          var form = document.createElement('form');
+          form.setAttribute('id', 'form');
+          var maxlabel = document.createElement('label');
+          maxlabel.setAttribute('id', 'maxlabel');
+          maxlabel.setAttribute('name', 'max');
+          maxlabel.innerHTML = 'Change maximum number of students:     ';
+          form.appendChild(maxlabel);
+          var maxInput = document.createElement('input');
+          maxInput.setAttribute('type', 'number');
+          maxInput.setAttribute('id', 'maxinput');
+          maxInput.setAttribute('name', 'max');
+          maxInput.setAttribute('placeholder', max)
+          form.appendChild(maxInput);
+          form.appendChild(br);
+
+          //change description
+          var descriptionlabel = document.createElement('label');
+          descriptionlabel.setAttribute('id', 'descriptionlabel');
+          descriptionlabel.setAttribute('name', 'description');
+          descriptionlabel.innerHTML = 'Change your seventh hour description:     ';
+          form.appendChild(descriptionlabel);
+          var descriptioninput = document.createElement('input');
+          descriptioninput.setAttribute('type', 'text');
+          descriptioninput.setAttribute('id', 'descriptioninput');
+          descriptioninput.setAttribute('name', 'description');
+          descriptioninput.setAttribute('placeholder', description);
+          form.appendChild(descriptioninput);
+
+          wrapper.appendChild(form);
+
+          //make submit button
+          var subbut = document.createElement('button');
+          subbut.setAttribute('class', 'thisthing');
+          subbut.setAttribute('onclick', 'teacherSubmit("'+name+'")');
+          subbut.innerHTML = 'Submit';
+          wrapper.appendChild(subbut);
 
         });
-      });
+        wrapper.appendChild(br);
+
+        wrappert = document.getElementById('second');
+        var req = document.createElement('h1');
+        req.innerHTML = "Require Students";
+        wrappert.appendChild(req);
+        //alphabetically list students with 'require' button that changes from green/require to red/unrequire depending on if the student has been required
+        studentsAlph = db.collection('students').orderBy('name', 'asc');
+        studentsAlph.get().then(function(snap){
+          snap.forEach(function(student){
+            var s = student.id;
+            db.collection('students').doc(s).collection('seventh').doc('seventh').get().then(function(snapshot){
+
+              var aform = document.createElement('form');
+              var sevs = snapshot.data();
+              var sName = document.createElement('label');
+              sName.innerHTML = student.data().name + "          ";
+              aform.appendChild(sName);
+
+              var sReq = document.createElement('input');
+              sReq.setAttribute('type', 'button');
+              sReq.setAttribute('id', s);
+
+              db.collection('teachers').doc(name).get().then(function(teacher){
+                var num = teacher.data().num;
+                if (sevs.reqd&&sevs.curr==name){
+                  sReq.setAttribute('class', 'ureq');
+                  sReq.setAttribute('value', 'Unrequire');
+                  sReq.setAttribute('onclick', 'reqFunc("'+s+'", 1,"'+name+'", "'+num+'")');
+                }else if(sevs.reqd){
+                  sReq.setAttribute('class', 'nreq');
+                  sReq.setAttribute('value', 'Required');
+                  sReq.setAttribute('onclick', 'reqFunc("'+s+'", 0,"'+name+'", "'+num+'")');
+                }else{
+                  sReq.setAttribute('class', 'req');
+                  sReq.setAttribute('value', 'Require');
+                  sReq.setAttribute('onclick', 'reqFunc("'+s+'", 2,"'+name+'", "'+num+'")');
+                };
+                aform.appendChild(sReq);
+                wrappert.appendChild(aform);
+              })
+
+            });
+
+          });
+        });
+      };
     };
 
+
+    function ocSubAtt(name){
+      if(confirm("Click 'Ok' to verify that you've completed attendance.")){
+        db.collection('teachers').doc(name).update({attendance:true});
+      };
+    }
     function teacherSubmit(teacher){
       selmax = parseInt(document.getElementById('maxinput').value);
       seldes = document.getElementById('descriptioninput').value;
@@ -399,7 +457,42 @@
 
       document.getElementById('form').reset();    
     }
-
+    function ocAt(id, num, name){
+      var meref = db.collection('teachers').doc(name);
+      var button = document.getElementById(id);
+      if(num==1){
+        //remove student's name from missing list
+        meref.get().then(function(snap){
+          var missing = snap.data().missing;
+          missing.splice(missing.indexOf(id), 1);
+          meref.update({missing:missing});
+        })
+        //change button class
+        button.setAttribute('class', 'req');
+        //change oc function
+        button.setAttribute('onclick', 'ocAt("'+id+'",0,"'+name+'")');
+        //Change button label
+        button.setAttribute('value', 'Present');
+      }else{
+        //add student's name to the missing list
+        meref.get().then(function(snap){
+          var missing = snap.data().missing;
+          if(!missing){
+            missing = [];
+          }else if(typeof missing=='string'){
+            missing = [missing];
+          };
+          missing.push(id);
+          meref.update({missing:missing});
+        })
+        //change button class
+        button.setAttribute('class', 'ureq');
+        //change oc function
+        button.setAttribute('onclick', 'ocAt("'+id+'",1,"'+name+'")');
+        //change button label
+        button.setAttribute('value', 'Missing');
+      }
+    }
     //This is what happens if they log into google, but they are not a supported account
     function nope(){
       var wrapper = document.getElementById('testsection');
