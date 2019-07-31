@@ -1,0 +1,474 @@
+<html>
+<head>
+  <meta name="google-signin-client_id" content="28487774226-bkuu1mvrcsbcd2q9ehqvr-----------.apps.googleusercontent.com">
+</head>
+<body>
+  <div id="my-signin2"></div>
+  <div id="testsection"></div>
+  <div id="second"></div>
+  <script src="https://www.gstatic.com/firebasejs/5.8.5/firebase.js"></script>
+
+  <script>
+    // Initialize Cloud Firestore through Firebase
+  // Initialize Firebase
+  var config = {
+    apiKey: "AIzaSyB71w3oRNQ7_EcdcfDEsVqr-----------",
+    authDomain: "stucovoting.firebaseapp.com",
+    databaseURL: "https://stucovoting.firebaseio.com",
+    projectId: "stucovoting",
+    storageBucket: "stucovoting.appspot.com",
+    messagingSenderId: "28487774226"
+  };
+  firebase.initializeApp(config);
+  var db = firebase.firestore();
+  function signOut() {
+    var auth2 = gapi.auth2.getAuthInstance();
+    auth2.signOut().then(function () {
+      console.log('User signed out.');
+    });
+  };
+    //if login button works. Gets name, id, and email domain.
+    function onSuccess(googleUser) {
+      var name = googleUser.getBasicProfile().getName();
+      var email = googleUser.getBasicProfile().getEmail();
+      var id = email.substring(0, email.indexOf('@'));
+      var domain = email.substring(email.indexOf('@')+1);
+      main(id, domain, name);
+    };
+
+    //logs error if google button fails
+    function onFailure(error) {
+
+      console.log(error);
+    };
+
+    //Make google button
+    function renderButton() {
+      gapi.signin2.render('my-signin2', {
+        'scope': 'profile email',
+        'width': 240,
+        'height': 50,
+        'longtitle': true,
+        'theme': 'dark',
+        'onsuccess': onSuccess,
+        'onfailure': onFailure
+      });
+    };
+
+    //checks is, obviously, the main function. From here, you can change 
+    //the structure of the page. Although it's limited right now, the goal
+    //is that you can add questions to the page without going beyond main.
+    function main(id, domain, name){
+      var wrapper = document.getElementById('testsection');
+      var currentDate = new Date();
+
+
+      var sobut = document.createElement('button');
+      sobut.setAttribute('id', 'sobut');
+      sobut.setAttribute('onclick', 'restart()');
+      sobut.innerHTML = "Sign Out";
+      sobut.setAttribute('class', 'thisthing');
+      var swrapper = document.getElementById('my-signin2');
+      swrapper.append(sobut);
+      //tests for student account
+      //if it is a week day and during open times
+      if(currentDate.getDay()<=5 && currentDate.getDay()>=1 && currentDate.getHours()>6 && currentDate.getHours()<14){
+        db.collection('students').doc(id).get().then(function(snap){
+          if(snap.exists){
+            var testdoc = db.collection('students').doc(id).collection('classes').doc('classes');
+            var sevi = db.collection('students').doc(id);
+            if(currentDate.getDay()==5){
+              testdoc = db.collection('teachers');
+              makeQuestionF(testdoc, 'Sign up for Seventh Hour', wrapper, sevi, id);
+            }else{
+              makeQuestion(testdoc, 'Sign up for Seventh Hour', wrapper, sevi, id);
+            }
+            
+          }else{
+            //name = 'Mee Murphy'; //this is for testing
+            //tests for teacher account
+            db.collection('teachers').doc(name.substring(0, 1).toLowerCase()+name.substring(name.indexOf(' ')+1)).get().then(function(snap){
+              if(snap.exists){
+                //do teacher things
+                teacherScreen(name.substring(0, 1).toLowerCase()+name.substring(name.indexOf(' ')+1), wrapper);
+              }else{
+                nope();
+
+              }
+            });
+          };
+        });
+      }else{
+        alert("Why are you here? Why are any of us here?")
+      };
+    };
+
+
+    //Make a question given a document that contains an element classes which is a list of 
+    //the options that go in the form. Name is the title for the question.
+    //ADD:Library, counselling
+    function makeQuestion(field, name, wrapper, sev, id){
+      //Give that bad boy a title
+      var title = document.createElement('h2');
+      title.setAttribute('id', title+'Title');
+      title.innerHTML = name;
+      wrapper.appendChild(title);
+
+      //Make a form
+      var form = document.createElement('form');
+      form.setAttribute('id', 'studentform');
+
+      //Add all of the options to the form
+      field.get().then(function(snap){
+        var classes = snap.data();
+        var x = 0;
+        while(classes[x]!=undefined){
+          var thing = classes[x];
+          //Add radio button
+          var inp = document.createElement('input');
+          inp.setAttribute('type', 'radio');
+          inp.setAttribute('value', thing.substring(1));
+          inp.setAttribute('id', thing+'button');
+          inp.setAttribute('name', name);
+          inp.setAttribute('value', thing);
+          form.appendChild(inp);
+
+          //Add label on radio button
+          var label = document.createElement('label');
+          label.setAttribute('id', thing+'label');
+          label.setAttribute('name', thing+'label')
+          label.innerHTML = thing.substring(1);
+          form.appendChild(label);
+
+          //Add a new line
+          var br = document.createElement('br');
+          form.appendChild(br);
+          x ++;
+        };
+      });
+      //Add the form to the page
+      wrapper.append(form);
+
+      //Add a submit button to the page
+      var subbut = document.createElement('button');
+      subbut.setAttribute('id', 'sub');
+      subbut.setAttribute('name', name);
+      subbut.setAttribute('onclick', 'ocSubmit("'+name+'","'+id+'")');
+      subbut.innerHTML = 'Submit, you fool';
+      subbut.setAttribute('class', 'thisthing');
+      wrapper.append(subbut);
+
+    };
+    function makeQuestionF(field, name, wrapper, sev, id){
+      //Give that bad boy a title
+      var title = document.createElement('h2');
+      title.setAttribute('id', title+'Title');
+      title.innerHTML = name;
+      wrapper.appendChild(title);
+
+      //Make a form
+      var form = document.createElement('form');
+      form.setAttribute('id', 'studentform');
+
+      //Add all of the options to the form
+
+
+      field.get().then(function(snap){
+        var classes = snap.docs.map(function (documentSnapshot) {
+          var idthing = documentSnapshot.id;
+         return idthing;
+        });
+        var x = 0;
+        while(classes[x]!=undefined){
+          var thing = classes[x];
+          //Add radio button
+          var inp = document.createElement('input');
+          inp.setAttribute('type', 'radio');
+          inp.setAttribute('value', thing.substring(1));
+          inp.setAttribute('id', thing+'button');
+          inp.setAttribute('name', name);
+          inp.setAttribute('value', thing);
+          form.appendChild(inp);
+
+          //Add label on radio button
+          var label = document.createElement('label');
+          label.setAttribute('id', thing+'label');
+          label.setAttribute('name', thing+'label')
+          label.innerHTML = thing.substring(1);
+          form.appendChild(label);
+
+          //Add a new line
+          var br = document.createElement('br');
+          form.appendChild(br);
+          x ++;
+        };
+      });
+      //Add the form to the page
+      wrapper.append(form);
+
+      //Add a submit button to the page
+      var subbut = document.createElement('button');
+      subbut.setAttribute('id', 'sub');
+      subbut.setAttribute('name', name);
+      subbut.setAttribute('onclick', 'ocSubmit("'+name+'","'+id+'")');
+      subbut.innerHTML = 'Submit, you fool';
+      subbut.setAttribute('class', 'thisthing');
+      wrapper.append(subbut);
+
+    };
+
+
+    //this function takes the title of a question and students.id.seventh
+    //for a given student. It will be the onclick function for the submit
+    //button. Right now, it can only handle the seventh hour application
+    //on a day that is not friday, because it would be too chaotic to
+    //have all of the teachers, and because it can only use one question
+    //This is easy enough to change, but honestly, I'm picking my battles
+    //right now.
+    function ocSubmit(title, id){
+      sev = db.collection('students').doc(id).collection('seventh').doc('seventh');
+      sev.get().then(function(snap){
+        var reqd = snap.data().reqd;
+        curr = snap.data().curr;
+        if(reqd==true){
+          alert("You are required in " + curr);
+        } else{
+          //get their choice of teacher
+          var sel = document.querySelector("input[name='"+title+"']:checked");
+          if(sel){ //if they chose a teacher
+            db.collection('teachers').doc(sel.value).get().then(function(tsnap){
+              var val = tsnap.data();
+              if(val.num>=val.max){
+                alert("Sorry, "+sel.value+" is full");
+              }else{
+                var num = parseInt(val.num);
+                var max = val.max;
+                var sel_teacher = sel.value;
+                alert("You signed up in "+sel_teacher.substring(1));
+                document.getElementById('studentform').reset();
+                if(curr=='none'){
+                  sev.update({curr:sel_teacher, reqd:false});
+                  db.collection('teachers').doc(sel_teacher).update({num:num+1});
+
+                }else if(curr!=sel_teacher){
+                  db.collection('teachers').doc(curr).update({num:num-1});
+                  db.collection('teachers').doc(sel_teacher).update({num:num+1});
+                  sev.update({curr:sel_teacher, reqd:false});
+                };
+              };
+            });          
+          };
+        };
+      });
+
+    };
+
+
+
+
+
+
+
+
+
+
+
+    //This gives teachers the option to change their max number and their description, as well as require students
+    function teacherScreen(name, wrapper){
+      var wrapper = document.getElementById('testsection');
+      var br = document.createElement('br');
+      wrapper.appendChild(br);
+      
+      db.collection('teachers').doc(name).get().then(function(snap){
+        var max = snap.data().max;
+        var description = snap.data().description;
+
+        //change max
+        var form = document.createElement('form');
+        form.setAttribute('id', 'form');
+        var maxlabel = document.createElement('label');
+        maxlabel.setAttribute('id', 'maxlabel');
+        maxlabel.setAttribute('name', 'max');
+        maxlabel.innerHTML = 'Change maximum number of students:     ';
+        form.appendChild(maxlabel);
+        var maxInput = document.createElement('input');
+        maxInput.setAttribute('type', 'number');
+        maxInput.setAttribute('id', 'maxinput');
+        maxInput.setAttribute('name', 'max');
+        maxInput.setAttribute('placeholder', max)
+        form.appendChild(maxInput);
+        form.appendChild(br);
+
+        //change description
+        var descriptionlabel = document.createElement('label');
+        descriptionlabel.setAttribute('id', 'descriptionlabel');
+        descriptionlabel.setAttribute('name', 'description');
+        descriptionlabel.innerHTML = 'Change your seventh hour description:     ';
+        form.appendChild(descriptionlabel);
+        var descriptioninput = document.createElement('input');
+        descriptioninput.setAttribute('type', 'text');
+        descriptioninput.setAttribute('id', 'descriptioninput');
+        descriptioninput.setAttribute('name', 'description');
+        descriptioninput.setAttribute('placeholder', description);
+        form.appendChild(descriptioninput);
+
+        wrapper.appendChild(form);
+
+        //make submit button
+        var subbut = document.createElement('button');
+        subbut.setAttribute('class', 'thisthing');
+        subbut.setAttribute('onclick', 'teacherSubmit("'+name+'")');
+        subbut.innerHTML = 'Submit';
+        wrapper.appendChild(subbut);
+
+      });
+      wrapper.appendChild(br);
+
+      wrappert = document.getElementById('second');
+      var req = document.createElement('h1');
+      req.innerHTML = "Require Students";
+      wrappert.appendChild(req);
+      //alphabetically list students with 'require' button that changes from green/require to red/unrequire depending on if the student has been required
+      studentsAlph = db.collection('students').orderBy('name', 'asc');
+      studentsAlph.get().then(function(snap){
+        snap.forEach(function(student){
+          var s = student.id;
+          db.collection('students').doc(s).collection('seventh').doc('seventh').get().then(function(snapshot){
+
+            var aform = document.createElement('form');
+            var sevs = snapshot.data();
+            var sName = document.createElement('label');
+            sName.innerHTML = student.data().name + "          ";
+            aform.appendChild(sName);
+
+            var sReq = document.createElement('input');
+            sReq.setAttribute('type', 'button');
+            sReq.setAttribute('id', s);
+
+            
+            if (sevs.reqd&&sevs.curr==name){
+              sReq.setAttribute('class', 'ureq');
+              sReq.setAttribute('value', 'Unrequire');
+              sReq.setAttribute('onclick', 'reqFunc("'+s+'", 1,"'+name+'")');
+            }else if(sevs.reqd){
+              sReq.setAttribute('class', 'nreq');
+              sReq.setAttribute('value', 'Required');
+              sReq.setAttribute('onclick', 'reqFunc("'+s+'", 0,"'+name+'")');
+            }else{
+              sReq.setAttribute('class', 'req');
+              sReq.setAttribute('value', 'Require');
+              sReq.setAttribute('onclick', 'reqFunc("'+s+'", 2,"'+name+'")');
+            };
+            aform.appendChild(sReq);
+            wrappert.appendChild(aform);
+          });
+
+        });
+      });
+    };
+
+    function teacherSubmit(teacher){
+      selmax = parseInt(document.getElementById('maxinput').value);
+      seldes = document.getElementById('descriptioninput').value;
+
+      if(selmax){
+        db.collection('teachers').doc(teacher).update({max:selmax});
+        document.getElementById('maxinput').setAttribute('placeholder', selmax);
+      };
+      if(seldes){
+        db.collection('teachers').doc(teacher).update({description:seldes});
+        document.getElementById('descriptioninput').setAttribute('placeholder', seldes);
+      };
+
+      document.getElementById('form').reset();    
+    }
+
+    //This is what happens if they log into google, but they are not a supported account
+    function nope(){
+      var wrapper = document.getElementById('testsection');
+      var sorry = document.createElement('P');
+      console.log('sorry');
+      sorry.innerHTML = "Sorry, Google says that you don't belong here.";
+      wrapper.appendChild(sorry);
+    };
+
+    //onclick for require buttons
+    function reqFunc(id, num, name){
+      var button = document.getElementById(id);
+      if(num==0){
+        alert("This student is already required in another class.");
+      }else if(num==1){
+        button.setAttribute('value', 'Require');
+        button.setAttribute('class', 'req');
+        button.setAttribute('onclick', 'reqFunc("'+id+'", 2,"'+name+'")');
+        db.collection('students').doc(id).collection('seventh').doc('seventh').update({reqd:false});
+      }else{
+        button.setAttribute('value', 'Unrequire');
+        button.setAttribute('class', 'ureq');
+        button.setAttribute('onclick', 'reqFunc("'+id+'", 1,"'+name+'")');
+        db.collection('students').doc(id).collection('seventh').doc('seventh').update({reqd:true});
+        db.collection('students').doc(id).collection('seventh').doc('seventh').update({curr:name});
+      };
+
+    };
+
+    //This is an artifact from the voting software that this came from
+    //It's pretty much the code version of an appendix.
+    //It probably won't do anything, but if it does, all hell brakes loose
+    function restart(){
+      signOut();
+      var one = document.getElementById('testsection');
+      while(one.firstChild){one.removeChild(one.firstChild);};
+      var two = document.getElementById('second');
+      while(two.firstChild){two.removeChild(two.firstChild);};
+      document.getElementById('sobut').remove();
+      //renderButton();
+    };
+  </script>
+
+  <script src="https://apis.google.com/js/platform.js?onload=renderButton" async defer></script>
+  <script src="https://www.gstatic.com/firebasejs/5.8.4/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/5.8.4/firebase-firestore.js"></script>
+  <style>
+  p, h1, h2, label, alert{
+    font-family: "Arial";
+  }
+  .thisthing{
+    font-family:"Arial";
+    color: #ffffff;
+    background-color:#4CAF50;
+    border: 0px;
+    width: 50%;
+    height: 40px;
+    font-size: 12pt;
+  }
+  .req{
+    font-family:"Arial";
+    color: #ffffff;
+    background-color:#4CAF50;
+    border: 0px;
+    width: 50%;
+    height: 40px;
+    font-size: 12pt;
+  }
+  .ureq{
+    font-family:"Arial";
+    color: #ffffff;
+    background-color:#FF0000;
+    border: 0px;
+    width: 50%;
+    height: 40px;
+    font-size: 12pt;
+  }
+  .nreq{
+    font-family:"Arial";
+    color: #ffffff;
+    background-color:#000000;
+    border: 0px;
+    width: 50%;
+    height: 40px;
+    font-size: 12pt;
+  }
+  </style>
+</body>
+</html>
